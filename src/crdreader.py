@@ -73,6 +73,7 @@ class CRDREADER:
 
             if self.format == 1:
                 df = df.drop(0)
+                df = df[df['North']!=0]
 
             self.df = df
             return df 

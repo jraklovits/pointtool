@@ -58,6 +58,8 @@ def main(page: ft.Page):
             case ".mxl":
                 x = mxl2df(selected_files_0.value)[0]
                 page.add(layerdate)
+                page.add(layeronly)
+                page.add(pointonly)
                 page.add(selected_files_1)
                 filesel.update()
                 selected_files_1.update()
@@ -65,14 +67,21 @@ def main(page: ft.Page):
                 layerlook.visible =True
                 layerlook.update()
             case ".txt":
-                x = txt2df(selected_files_0.value)[0]
-                page.add(layerdate)
-                page.add(selected_files_1)
-                filesel.update()
-                selected_files_1.update()
-                count_row = x.shape[0]
-                layerlook.visible =True
-                layerlook.update()
+                try:
+                    x = txt2df(selected_files_0.value)[0]
+                    page.add(layerdate)
+                    page.add(layeronly)
+                    #page.add(layer_only_path)
+                    page.add(pointonly)
+                    page.add(selected_files_1)
+                    #page.add(point_only_path)
+                    filesel.update()
+                    selected_files_1.update()
+                    count_row = x.shape[0]
+                    layerlook.visible =True
+                    layerlook.update()
+                except:
+                    print("yikes")
             case ".mjf":
                 x = sql2df(selected_files_0.value)[0]
                 count_row = x.shape[0]
@@ -85,12 +94,13 @@ def main(page: ft.Page):
                 layerlook.update()
             case ".crd":
                 x = crd2df(selected_files_0.value)
+               #page.add(selected_files_1)
+                #selected_files_1.update()
+                page.add(pointonly)
+                page.add(point_only_path)
                 count_row = x.shape[0]
         global dataframe
         dataframe = x
-        
-
-
         pointcount.value =str(count_row) + ' Points in the file'
         pointcount.update()
         page.add(tv.df2lv(x))
@@ -149,13 +159,49 @@ def main(page: ft.Page):
         show_alert_dialog_0()
         layerdate.disabled = True
         layerdate.update()
+    def pick_files_result_2(e: ft.FilePickerResultEvent):
+        selected_files_1.value = e.path
+        saveloc = selected_files_1.value
+        selected_files_1.update()
+        x = dfw.DFWRITER(dataframe, saveloc)
+        #x.createFldTxt()
+        x.createTXTNoDates()
+        show_alert_dialog_0()
+        layerdate.disabled = True
+        layerdate.update()
+    def pick_files_result_3(e: ft.FilePickerResultEvent):
+        selected_files_1.value = e.path
+        saveloc = selected_files_1.value
+        #selected_files_1.update()
+        
+        # point_only_path.value = e.path
+        # saveloc = point_only_path.value
+        # point_only_path.update()
+        x = dfw.DFWRITER(dataframe, saveloc)
+        #x.createFldTxt()
+        x.createTXT(saveloc)
+        show_alert_dialog_0()
+        # layerdate.disabled = True
+        # layerdate.update()
 
     layerdate_dialog = ft.FilePicker(
         on_result=pick_files_result_1
     )
     selected_files_1 = ft.Text("No file chosen", size=14)
 
+    layer_dialog = ft.FilePicker(
+        on_result=pick_files_result_2
+    )
+    layer_only_path = ft.Text("No file chosen", size=14)
+
+    point_dialog = ft.FilePicker(
+        on_result=pick_files_result_3
+    )
+    point_only_path = ft.Text("No file chosen", size=14)
+
     page.overlay.append(layerdate_dialog)
+    page.overlay.append(point_dialog)
+    page.overlay.append(layer_dialog)
     ##############FILE SAVE############
 
 
@@ -172,7 +218,7 @@ def main(page: ft.Page):
 
     alert_dialog_0 = ft.AlertDialog(
         modal=False,
-        title=ft.Text("Alert"),
+        title=ft.Text("Files Saved"),
         content=ft.Text("Success!"),
         actions=[ft.TextButton("OK", on_click=lambda _: (page.close(alert_dialog_0), page.update()))]
     )
@@ -191,20 +237,20 @@ def main(page: ft.Page):
     )
 
     layerdate = ft.ElevatedButton(
-            text="Save Dates - Layers",
+            text="Save Folders of Layers and Each Text File by Date (ie AB-STORM 05-05-22)",
             icon=ft.icons.SAVE_AS,
             on_click=lambda _: layerdate_dialog.get_directory_path()
     )
-    # layeronly = ft.ElevatedButton(
-    #         text="Save Layers",
-    #         icon=ft.icons.SAVE_AS,
-    #         on_click=lambda _: pick_files_dialog_1.get_directory_path()
-    # )
-    # pointonly = ft.ElevatedButton(
-    #         text="Save Points",
-    #         icon=ft.icons.SAVE_AS,
-    #         on_click=lambda _: pick_files_dialog_1.get_directory_path()
-    #)
+    layeronly = ft.ElevatedButton(
+            text="Save One Text File for Each Layer (ie AB-STORM)",
+            icon=ft.icons.SAVE_AS,
+            on_click=lambda _: layer_dialog.get_directory_path()
+    )
+    pointonly = ft.ElevatedButton(
+            text="Save Everything in One Text File",
+            icon=ft.icons.SAVE_AS,
+            on_click=lambda _: point_dialog.save_file(allowed_extensions=['txt'])
+    )
     
     pointcount = ft.Text(value='Select a file')
     page.add(pointcount)

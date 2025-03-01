@@ -35,9 +35,12 @@ class DFWRITER:
             group.to_csv(os.path.join(self.destdir,f'{layers}.txt'),index=False,header=False)
 
     def createTXT(self,filesaveas):
-        self.df = self.df.drop('Date', axis=1)
-        self.df = self.df.drop('Layer', axis=1)
-        self.df.to_csv(filesaveas, index=False, header=False)
+        try:
+            self.df = self.df.drop('Date', axis=1)
+            self.df = self.df.drop('Layer', axis=1)
+        except:
+            pass
+        self.df.to_csv(filesaveas + '.txt', index=False, header=False)
 
     
 

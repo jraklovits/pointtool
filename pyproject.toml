@@ -1,14 +1,13 @@
 [project]
 name = "Point Tool"
-version = "0.3.0"
+version = "1.0.0"
 description = ""
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-  "flet==0.25.2",
+  "flet==0.27.1",
   "pandas",
-  "numpy",
-  "datetime"
+  "numpy"
 ]
 
 
