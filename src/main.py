@@ -1,261 +1,94 @@
-import flet as ft # type: ignore
-import os.path
-import mxlreader as mxl
-import txtreader as txt
-import sqlitereader as sql
-import crdreader as crd
-import dfwriter as dfw
+import streamlit as st # type: ignore
 import pandas as pd # type: ignore
-import tableviewer as tv
+import tkinter as tk
+from tkinter import filedialog
+from datetime import date
+import os
+import mxlreader as mxl
+from dfwriter import DFWRITER
+from pandas.api.types import (
+    is_categorical_dtype,
+    is_datetime64_any_dtype,
+    is_numeric_dtype,
+    is_object_dtype,
+)
+
+#Utility
 
 
-filetype = 'mxl'
-saveloc = ''
-savehelp = 'Saving will create folders for layers, and a text file for each day and layer inside.'
-global dataframe
 
-def get_file_type(x):
-    '''RETURN STRING FILE EXTENSION'''
-    extension = os.path.splitext(x)[1]
-    return extension
+def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
+    modify = st.checkbox("Add filters")
+    if not modify:
+        return df
+    df = df.copy()
 
-def mxl2df(filepath):
-    print('mxl')
-    t = mxl.MXL(filepath)
-    x = t.getPoints()
-    y = t.getLayersdf()
-    return x,y
+    # Try to convert datetimes into a standard format (datetime, no timezone)
+    for col in df.columns:
+        if is_object_dtype(df[col]):
+            try:
+                df[col] = pd.to_datetime(df[col])
+            except Exception:
+                pass
 
-def txt2df(filepath):
-    print('txt')
-    t = txt.TXT(filepath)
-    x = t.getPoints()
-    y = t.getLayers()
-    return x,y
+        if is_datetime64_any_dtype(df[col]):
+            df[col] = df[col].dt.tz_localize(None)
 
-def sql2df(filepath):
-    print('sql')
-    t = sql.SQL(filepath)
-    x =  t.getPntsCodesLayers()
-    y = t.getLayers()
-    t.close()
-    return x,y
+    modification_container = st.container()
 
-def df2csv(df, destpath):
-    t = dfw.DFWRITER(df,destpath)
-    t.createFldTxt()
+    with modification_container:
+        to_filter_columns = st.multiselect("Filter dataframe on", df.columns)
+        for column in to_filter_columns:
+            left, right = st.columns((1, 20))
+            left.write("↳")
+            # Treat columns with < 10 unique values as categorical
+            if is_categorical_dtype(df[column]) or df[column].nunique() < 10:
+                user_cat_input = right.multiselect(
+                    f"Values for {column}",
+                    df[column].unique(),
+                    default=list(df[column].unique()),
+                )
+                df = df[df[column].isin(user_cat_input)]
+            elif is_numeric_dtype(df[column]):
+                _min = float(df[column].min())
+                _max = float(df[column].max())
+                step = (_max - _min) / 100
+                user_num_input = right.slider(
+                    f"Values for {column}",
+                    _min,
+                    _max,
+                    (_min, _max),
+                    step=step,
+                )
+                df = df[df[column].between(*user_num_input)]
+            elif is_datetime64_any_dtype(df[column]):
+                user_date_input = right.date_input(
+                    f"Values for {column}",
+                    value=(
+                        df[column].min(),
+                        df[column].max(),
+                    ),
+                )
+                if len(user_date_input) == 2:
+                    user_date_input = tuple(map(pd.to_datetime, user_date_input))
+                    start_date, end_date = user_date_input
+                    df = df.loc[df[column].between(start_date, end_date)]
+            else:
+                user_text_input = right.text_input(
+                    f"Substring or regex in {column}",
+                )
+                if user_text_input:
+                    df = df[df[column].str.contains(user_text_input)]
 
-def crd2df(filepath):
-    t = crd.CRDREADER(filepath)
-    t.read_crd()
-    return t.df
-
-def main(page: ft.Page):
-
-    #######UTILITY###############
-    def getpnts(ft):
-        match ft:
-            case ".mxl":
-                x = mxl2df(selected_files_0.value)[0]
-                page.add(layerdate)
-                page.add(layeronly)
-                page.add(pointonly)
-                page.add(selected_files_1)
-                filesel.update()
-                selected_files_1.update()
-                count_row = x.shape[0]
-                layerlook.visible =True
-                layerlook.update()
-            case ".txt":
-                try:
-                    x = txt2df(selected_files_0.value)[0]
-                    page.add(layerdate)
-                    page.add(layeronly)
-                    #page.add(layer_only_path)
-                    page.add(pointonly)
-                    page.add(selected_files_1)
-                    #page.add(point_only_path)
-                    filesel.update()
-                    selected_files_1.update()
-                    count_row = x.shape[0]
-                    layerlook.visible =True
-                    layerlook.update()
-                except:
-                    print("yikes")
-            case ".mjf":
-                x = sql2df(selected_files_0.value)[0]
-                count_row = x.shape[0]
-                layerlook.visible =True
-                layerlook.update()
-            case ".bak":
-                x = sql2df(selected_files_0.value)[0]
-                count_row = x.shape[0]
-                layerlook.visible =True
-                layerlook.update()
-            case ".crd":
-                x = crd2df(selected_files_0.value)
-               #page.add(selected_files_1)
-                #selected_files_1.update()
-                page.add(pointonly)
-                page.add(point_only_path)
-                count_row = x.shape[0]
-        global dataframe
-        dataframe = x
-        pointcount.value =str(count_row) + ' Points in the file'
-        pointcount.update()
-        page.add(tv.df2lv(x))
-        selected_files_1.value = savehelp
-        filesel.visible = False
-        filesel.update()
+    return df
+#Utility
 
 
-    def show_layers(e):
-        filetype = get_file_type(selected_files_0.value)
-        if filetype =='.mjf':
-            layers = (sql2df(selected_files_0.value))[1]
-            layers = layers.drop('keyLayers', axis=1)
-        if filetype == '.mxl':
-            layers = (mxl2df(selected_files_0.value))[1]
-            # layersdict =(mxl2df(selected_files_0.value))[1]
-            # layers = pd.DataFrame.from_dict(layersdict,orient='index', columns=['Name'])
-        if filetype =='.txt':
-            layers = (txt2df(selected_files_0.value))[1]
-        if filetype =='.bak':
-            layers = (sql2df(selected_files_0.value))[1]
-            layers = layers.drop('keyLayers', axis=1)
-        page.add(ft.Divider(height=1, color="white"))
-        page.add(tv.df2lv(layers))
-        layerlook.visible=False
-        page.update()
-    #######UTILITY###############
-
-
-    # File picker handlers and setup
-    ##############FILE SELECT############
-    def pick_files_result_0(e: ft.FilePickerResultEvent):
-        global dataframe
-        selected_files_0.value = e.files[0].path
-        selected_files_0.update()
-        ft = get_file_type(selected_files_0.value)
-        print(ft)
-        #filetype = ft
-        getpnts(ft)
-
-    pick_files_dialog_0 = ft.FilePicker(
-        on_result=pick_files_result_0
-    )
-    selected_files_0 = ft.Text("No file chosen", size=14)
-
-    page.overlay.append(pick_files_dialog_0)
-    ##############FILE SELECT############
-
-    ##############FILE SAVE############
-    def pick_files_result_1(e: ft.FilePickerResultEvent):
-        selected_files_1.value = e.path
-        saveloc = selected_files_1.value
-        selected_files_1.update()
-        x = dfw.DFWRITER(dataframe, saveloc)
-        x.createFldTxt()
-        show_alert_dialog_0()
-        layerdate.disabled = True
-        layerdate.update()
-    def pick_files_result_2(e: ft.FilePickerResultEvent):
-        selected_files_1.value = e.path
-        saveloc = selected_files_1.value
-        selected_files_1.update()
-        x = dfw.DFWRITER(dataframe, saveloc)
-        #x.createFldTxt()
-        x.createTXTNoDates()
-        show_alert_dialog_0()
-        layerdate.disabled = True
-        layerdate.update()
-    def pick_files_result_3(e: ft.FilePickerResultEvent):
-        selected_files_1.value = e.path
-        saveloc = selected_files_1.value
-        #selected_files_1.update()
-        
-        # point_only_path.value = e.path
-        # saveloc = point_only_path.value
-        # point_only_path.update()
-        x = dfw.DFWRITER(dataframe, saveloc)
-        #x.createFldTxt()
-        x.createTXT(saveloc)
-        show_alert_dialog_0()
-        # layerdate.disabled = True
-        # layerdate.update()
-
-    layerdate_dialog = ft.FilePicker(
-        on_result=pick_files_result_1
-    )
-    selected_files_1 = ft.Text("No file chosen", size=14)
-
-    layer_dialog = ft.FilePicker(
-        on_result=pick_files_result_2
-    )
-    layer_only_path = ft.Text("No file chosen", size=14)
-
-    point_dialog = ft.FilePicker(
-        on_result=pick_files_result_3
-    )
-    point_only_path = ft.Text("No file chosen", size=14)
-
-    page.overlay.append(layerdate_dialog)
-    page.overlay.append(point_dialog)
-    page.overlay.append(layer_dialog)
-    ##############FILE SAVE############
-
-
-    # Alert dialog handlers and setup
-    def show_alert_dialog_0():
-        page.open(alert_dialog_0)
-        page.update()
-    def toggle_alert_dialog_0():
-        if alert_dialog_0.open: 
-            page.close(alert_dialog_0)
-        else:
-            page.open(alert_dialog_0)
-        page.update()
-
-    alert_dialog_0 = ft.AlertDialog(
-        modal=False,
-        title=ft.Text("Files Saved"),
-        content=ft.Text("Success!"),
-        actions=[ft.TextButton("OK", on_click=lambda _: (page.close(alert_dialog_0), page.update()))]
-    )
-    page.overlay.append(alert_dialog_0)
-
-    # Button function definitions
-    filesel = ft.ElevatedButton(
-            text="Choose File...",
-            icon=ft.icons.UPLOAD_FILE,
-            on_click=lambda _: pick_files_dialog_0.pick_files(allow_multiple=False, allowed_extensions=["mxl", "csv", "txt", "mjf", "bak","crd"])
-    )
-    layerlook = ft.ElevatedButton(
-            text="Show Layers",
-            visible=False,
-            on_click=show_layers
-    )
-
-    layerdate = ft.ElevatedButton(
-            text="Save Folders of Layers and Each Text File by Date (ie AB-STORM 05-05-22)",
-            icon=ft.icons.SAVE_AS,
-            on_click=lambda _: layerdate_dialog.get_directory_path()
-    )
-    layeronly = ft.ElevatedButton(
-            text="Save One Text File for Each Layer (ie AB-STORM)",
-            icon=ft.icons.SAVE_AS,
-            on_click=lambda _: layer_dialog.get_directory_path()
-    )
-    pointonly = ft.ElevatedButton(
-            text="Save Everything in One Text File",
-            icon=ft.icons.SAVE_AS,
-            on_click=lambda _: point_dialog.save_file(allowed_extensions=['txt'])
-    )
-    
-    pointcount = ft.Text(value='Select a file')
-    page.add(pointcount)
-    page.add(filesel,selected_files_0)
-    page.add(layerlook)
-    page.window.width= 1600
-
-ft.app(main)
+uploaded_file = st.file_uploader("Choose a file")
+if uploaded_file is not None:
+    t= mxl.MXL(uploaded_file)
+    df = t.getPoints()
+    st.dataframe(filter_dataframe(df))
+    output_csv = df.to_csv(index=False).encode('utf-8') 
+    if st.download_button("Download as one file", output_csv, file_name = "v.csv", mime="text/csv"):
+        print(DFWRITER(df, "tmp").createFldTxt())
