@@ -7,6 +7,7 @@ class CRDREADER:
         self.file_path = file_path
         self.get_format()
 
+
     def get_format(self):
         try:
             with open(self.file_path, "rb") as file:

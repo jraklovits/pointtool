@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import datetime as dt
 import numpy as np
+from io import StringIO
 
 
 ##GET RID OF HIDDEN CODES - WACKY CODES
@@ -32,7 +33,9 @@ strdeleter = ['{|HiddenCode|}']
 
 class SQL:
     def __init__(self, filename):
-        self.conn = sqlite3.connect(filename)
+        #UGH
+        self.conn = sqlite3.connect(":memory:")
+        self.conn.deserialize(filename)
 
     def getTables(self):
         #get all tables in database
@@ -127,6 +130,7 @@ class SQL:
         pts['Date'] = pd.to_datetime(pts['Date'], unit='s')
         pts['Date'] = pts['Date'].dt.strftime('%m-%d-%Y')
         pts = pts.replace('',np.nan).fillna(" ")
+        print(pts)
         return pts
 
 

@@ -5,6 +5,9 @@ from tkinter import filedialog
 from datetime import date
 import os
 import mxlreader as mxl
+import txtreader as txt
+import crdreader as crd
+import sqlitereader as sql
 from dfwriter import DFWRITER
 from pandas.api.types import (
     is_categorical_dtype,
@@ -81,13 +84,35 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                     df = df[df[column].str.contains(user_text_input)]
 
     return df
+
+def get_file_type(x):
+    '''RETURN STRING FILE EXTENSION'''
+    extension = os.path.splitext(x)[1]
+    return extension
+
+
 #Utility
 
 
-uploaded_file = st.file_uploader("Choose a file")
+uploaded_file = st.file_uploader("Choose a file", type=['.mxl','.txt'])
 if uploaded_file is not None:
-    t= mxl.MXL(uploaded_file)
-    df = t.getPoints()
+    type = get_file_type(uploaded_file.name)
+    print(type)
+    if type == '.mxl':
+        t= mxl.MXL(uploaded_file)
+        df = t.getPoints()
+    if type == '.txt':
+        t = txt.TXT(uploaded_file)
+        df = t.getPoints()
+    if type == ".crd":
+        t = crd.CRDREADER(uploaded_file)
+        df = t.read_crd()
+    if type == '.bak':
+        t = sql.SQL(uploaded_file.getvalue())
+        df = t.getPntsCodesLayers()
+        t.close()
+
+
     st.dataframe(filter_dataframe(df))
     output_csv = df.to_csv(index=False).encode('utf-8') 
     if st.download_button("Download as one file", output_csv, file_name = "v.csv", mime="text/csv"):

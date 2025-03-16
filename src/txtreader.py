@@ -1,11 +1,14 @@
 import os
 import pandas as pd
+from io import StringIO
 
 class TXT:
     def __init__(self, filename):
-        file_name = os.path.basename(filename)
         #self.df = pd.read_csv(filename,index_col=False, dtype=  str,names=['Points','Northings','Eastings','Elevations','Descriptions','Layers','Dates'],parse_dates=['Dates'])
-        self.df = pd.read_csv(filename,index_col=False, dtype=  str,names=['Point','Northing','Easting','Elevation','Description','Layer','Date'])
+        if isinstance(filename, str):
+            self.df = pd.read_csv(StringIO(filename),index_col=False, dtype=  str,names=['Point','Northing','Easting','Elevation','Description','Layer','Date'])
+        else:
+            self.df = pd.read_csv(filename,index_col=False, dtype=  str,names=['Point','Northing','Easting','Elevation','Description','Layer','Date'])
     def getLayers(self):
         self.df['Layer'] =  self.df['Layer'].str.strip().replace(" ","_")
         self.df = self.df.drop('Point', axis=1)
