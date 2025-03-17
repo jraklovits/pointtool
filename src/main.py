@@ -1,6 +1,5 @@
 import streamlit as st # type: ignore
 import pandas as pd # type: ignore
-import tkinter as tk
 from tkinter import filedialog
 from datetime import date
 import os
