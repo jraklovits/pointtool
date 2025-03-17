@@ -111,7 +111,7 @@ if uploaded_file is not None:
         t.close()
 
 
-    st.dataframe(filter_dataframe(df))
+    st.dataframe(filter_dataframe(df),hide_index=True)
     output_csv = df.to_csv(index=False).encode('utf-8') 
     if st.download_button("Download as one file", output_csv, file_name = "v.csv", mime="text/csv"):
         print(DFWRITER(df, "tmp").createFldTxt())
