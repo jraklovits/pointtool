@@ -14,8 +14,6 @@ class DFWRITER:
     # def __init__(self, df, destdir):
     #     self.df = df
     #     self.destdir = destdir
-    #     print(self.df)
-    #     print(self.destdir)
 
     # def layerFolder(self, filePath):
     #     filePath = filePath.strip()
@@ -25,7 +23,6 @@ class DFWRITER:
     #         pass
     
     def createFldTxt(self):
-        print(self.df)
         zip_buf = io.BytesIO()
         #Creates Folders for layers, then outputs a text file for each date named LAYER - DATE
         self.df['Date'] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%y')
@@ -52,20 +49,20 @@ class DFWRITER:
             groups = self.df.groupby('Layer')
             for layers, group in groups:
                 group = group.drop(['Layer'], axis=1)
-                with zf.open(f'{layers}.txt') as buffer:
+                with zf.open(f'{layers}.txt',"w") as buffer:
                     group.to_csv(buffer,index=False,header=False)
         zip_buf.seek(0)
         b64 = base64.b64encode(zip_buf.read()).decode()
         del zip_buf
         return b64
     
-    # def createTXT(self):
-    #     try:
-    #         self.df = self.df.drop('Date', axis=1)
-    #         self.df = self.df.drop('Layer', axis=1)
-    #     except:
-    #         pass
-    #     self.df.to_csv(filesaveas + '.txt', index=False, header=False)
+    def createTXT(self):
+        try:
+            self.df = self.df.drop('Date', axis=1)
+            self.df = self.df.drop('Layer', axis=1)
+        except:
+            pass
+        self.df.to_csv(filesaveas + '.txt', index=False, header=False)
 
     
 
