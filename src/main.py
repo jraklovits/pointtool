@@ -115,9 +115,14 @@ if uploaded_file is not None:
 
     st.dataframe(filter_dataframe(df),hide_index=True)
     t = dfw.DFWRITER(df)
-    x = t.createFldTxt()
-    href = f'<a href=\"data:file/zip;base64,{x}\" download="Files.zip">Click Here To download</a>'
-    st.markdown(href, unsafe_allow_html=True)
+    layer_date = t.createFldTxt()
+    #layer = t.createTXTNoDates()
+    
+
+    href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">Download files as Layer-Date (AB-STORM 3-22-25)</a>'
+    st.markdown(href1, unsafe_allow_html=True)
+    # href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (AB-STORM)</a>'
+    # st.markdown(href2, unsafe_allow_html=True)
 
 
     # output_csv = df.to_csv(index=False).encode('utf-8')
