@@ -2,11 +2,13 @@ import streamlit as st # type: ignore
 import pandas as pd # type: ignore
 from datetime import date
 import os
+import io
 import mxlreader as mxl
 import txtreader as txt
 import crdreader as crd
 import sqlitereader as sql
-from dfwriter import DFWRITER
+import dfwriter as dfw
+import zipfile
 from pandas.api.types import (
     is_categorical_dtype,
     is_datetime64_any_dtype,
@@ -112,6 +114,22 @@ if uploaded_file is not None:
 
 
     st.dataframe(filter_dataframe(df),hide_index=True)
-    output_csv = df.to_csv(index=False).encode('utf-8') 
-    if st.download_button("Download as one file", output_csv, file_name = "v.csv", mime="text/csv"):
-        print(DFWRITER(df, "tmp").createFldTxt())
+    t = dfw.DFWRITER(df)
+    x = t.createFldTxt()
+    href = f'<a href=\"data:file/zip;base64,{x}\" download="Files.zip">Click Here To download</a>'
+    st.markdown(href, unsafe_allow_html=True)
+
+
+    # output_csv = df.to_csv(index=False).encode('utf-8')
+    # t = dfw.DFWRITER(df)
+    # zipper = t.createFldTxt()
+    # with open('Files.zip', 'w') as file:
+    #     btn = st.download_button(
+    #         label="Download layer - date files",
+    #         data=zipper,
+    #         file_name = "Files.zip",
+    #         mime = "application/zip"
+    #     )
+    #st.download_button("Download as one file", output_csv, file_name = "v.csv", mime="text/csv"):
+    #dtbut = st.download_button('Download layer - date files', zipper, mime="application/zip",file_name = "FILES.zip")
+    
