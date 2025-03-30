@@ -106,6 +106,7 @@ if uploaded_file is not None:
         href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == '.txt':
+        st.toast("Text will have to be: (P,N,E,Z,D,Layer,Date)",icon="🚨")
         t = txt.TXT(uploaded_file)
         df = t.getPoints()
         t = dfw.DFWRITER(df)
