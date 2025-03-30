@@ -116,6 +116,7 @@ if uploaded_file is not None:
         href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == ".crd":
+        t=crd.CRDREADER(uploaded_file.getvalue())
         df = t.read_crd()
     if type == '.bak':
         t = sql.SQL(uploaded_file.getvalue())
