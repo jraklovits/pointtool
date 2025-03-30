@@ -101,9 +101,9 @@ if uploaded_file is not None:
         t = dfw.DFWRITER(df)
         layer_date = t.createFldTxt()
         layer = t.createTXTNoDates()
-        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
+        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
         st.markdown(href1, unsafe_allow_html=True)
-        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == '.txt':
         st.toast("Text will have to be: (P,N,E,Z,D,Layer,Date)",icon="🚨")
@@ -112,9 +112,9 @@ if uploaded_file is not None:
         t = dfw.DFWRITER(df)
         layer_date = t.createFldTxt()
         layer = t.createTXTNoDates()
-        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
+        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
         st.markdown(href1, unsafe_allow_html=True)
-        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == ".crd":
         t=crd.CRDREADER(uploaded_file.getvalue())
@@ -123,21 +123,7 @@ if uploaded_file is not None:
         t = sql.SQL(uploaded_file.getvalue())
         df = t.getPntsCodesLayers()
         t.close()
-
-
     st.dataframe(filter_dataframe(df),hide_index=True)
-
-
     output_csv = df.to_csv(index=False).encode('utf-8')
-    # t = dfw.DFWRITER(df)
-    # zipper = t.createFldTxt()
-    # with open('Files.zip', 'w') as file:
-    #     btn = st.download_button(
-    #         label="Download layer - date files",
-    #         data=zipper,
-    #         file_name = "Files.zip",
-    #         mime = "application/zip"
-    #     )
     st.download_button("Download as one file", output_csv, file_name = "file.csv", mime="text/csv")
-    #dtbut = st.download_button('Download layer - date files', zipper, mime="application/zip",file_name = "FILES.zip")
     
