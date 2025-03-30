@@ -92,7 +92,7 @@ def get_file_type(x):
 #Utility
 
 
-uploaded_file = st.file_uploader("Choose a file", type=['.mxl','.txt'])
+uploaded_file = st.file_uploader("Choose a file", type=['.mxl','.txt', '.crd'])
 if uploaded_file is not None:
     type = get_file_type(uploaded_file.name)
     if type == '.mxl':
@@ -103,13 +103,19 @@ if uploaded_file is not None:
         layer = t.createTXTNoDates()
         href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
         st.markdown(href1, unsafe_allow_html=True)
-        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (AB-STORM)</a>'
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == '.txt':
         t = txt.TXT(uploaded_file)
         df = t.getPoints()
+        t = dfw.DFWRITER(df)
+        layer_date = t.createFldTxt()
+        layer = t.createTXTNoDates()
+        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
+        st.markdown(href1, unsafe_allow_html=True)
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">Download files as Layer (e.g. AB-STORM)</a>'
+        st.markdown(href2, unsafe_allow_html=True)
     if type == ".crd":
-        t = crd.CRDREADER(uploaded_file)
         df = t.read_crd()
     if type == '.bak':
         t = sql.SQL(uploaded_file.getvalue())
