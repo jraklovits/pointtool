@@ -101,7 +101,7 @@ if uploaded_file is not None:
         t = dfw.DFWRITER(df)
         layer_date = t.createFldTxt()
         layer = t.createTXTNoDates()
-        crdpile = t.createCrds()
+        #crdpile = t.createCrds()
         href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25.txt)</a>'
         st.markdown(href1, unsafe_allow_html=True)
         href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM.txt)</a>'
