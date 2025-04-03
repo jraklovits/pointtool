@@ -122,6 +122,10 @@ if uploaded_file is not None:
     if type == ".crd":
         t=crd.CRDREADER(uploaded_file.getvalue())
         df = t.read_crd()
+        t = dfw.DFWRITER(df)
+        crd_data = t.createCrd()
+        href = f'<a href="data:application/octet-stream;base64,{crd_data}" download="output.crd">📁Download as CRD</a>'
+        st.markdown(href, unsafe_allow_html=True)
     if type == '.bak':
         t = sql.SQL(uploaded_file.getvalue())
         df = t.getPntsCodesLayers()
