@@ -2,6 +2,7 @@ import pandas as pd
 import zipfile
 import io
 import base64
+from struct import pack
 
 
 import os
@@ -64,5 +65,55 @@ class DFWRITER:
             pass
         self.df.to_csv(filesaveas + '.txt', index=False, header=False)
 
-    
+    def createCrds(self, format=2):
+        """Create a CRD file from the DataFrame
+        Args:
+            format (int): CRD format version (1 or 2)
+        Returns:
+            str: Base64 encoded CRD file content
+        """
+        # Ensure required columns exist
+        required_cols = ['Name', 'North', 'East', 'Height', 'Description']
+        if not all(col in self.df.columns for col in required_cols):
+            # Rename columns if they exist with different names
+            rename_map = {
+                'Point': 'Name',
+                'Northing': 'North',
+                'Easting': 'East',
+                'Elevation': 'Height'
+            }
+            self.df = self.df.rename(columns=rename_map)
+        
+        # Convert numeric columns
+        for col in ['North', 'East', 'Height']:
+            self.df[col] = pd.to_numeric(self.df[col], errors='coerce')
+        
+        # Create CRD file
+        output = io.BytesIO()
+        
+        # Write header for format 2
+        if format == 2:
+            output.write(b'\x00' * 86)
+            output.write(b'2')
+            output.write(b'\x00' * 17)
+
+        # Write records
+        for _, row in self.df.iterrows():
+            northing = float(row['North'])
+            easting = float(row['East'])
+            elevation = float(row['Height'])
+            description = str(row['Description'])[:32].ljust(32, '\x00').encode('utf-8')
+            
+            if format == 2:
+                name = str(row['Name'])[:10].ljust(10, '\x00').encode('utf-8')
+                record = pack('ddd32s10s', northing, easting, elevation, description, name)
+            else:
+                record = pack('ddd32s', northing, easting, elevation, description)
+                
+            output.write(record)
+        
+        output.seek(0)
+        b64 = base64.b64encode(output.read()).decode()
+        del output
+        return b64
 
