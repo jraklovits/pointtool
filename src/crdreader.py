@@ -1,5 +1,5 @@
 import pandas as pd
-from struct import unpack
+from struct import unpack, pack
 import io
 import os
 
