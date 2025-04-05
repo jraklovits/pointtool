@@ -130,4 +130,3 @@ if uploaded_file is not None:
     st.dataframe(filter_dataframe(df),hide_index=True)
     output_csv = df.to_csv(index=False).encode('utf-8')
     st.download_button("Download as one file", output_csv, file_name = "file.csv", mime="text/csv")
-    
