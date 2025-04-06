@@ -81,9 +81,9 @@ class DFWRITER:
                         else:
                             record = pack('ddd32s', northing, easting, elevation, description)    
                         output.write(record)
+                    print(output)
                     output.seek(0)
-                    zip_buf.write(output.read())
-                      #group.to_csv(buffer,index=False,header=False)
+            zip_buf.write(output.getvalue())
         b64 = base64.b64encode(zip_buf.read()).decode() 
         del zip_buf
         return b64
