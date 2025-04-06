@@ -17,9 +17,6 @@ from pandas.api.types import (
 )
 
 #Utility
-
-
-
 def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
     modify = st.checkbox("Add filters")
     if not modify:
@@ -36,7 +33,6 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
 
         if is_datetime64_any_dtype(df[col]):
             df[col] = df[col].dt.tz_localize(None)
-
     modification_container = st.container()
 
     with modification_container:
@@ -82,7 +78,6 @@ def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:
                 )
                 if user_text_input:
                     df = df[df[column].str.contains(user_text_input)]
-
     return df
 
 def get_file_type(x):
@@ -91,20 +86,24 @@ def get_file_type(x):
     return extension
 #Utility
 
-
 uploaded_file = st.file_uploader("Choose a file", type=['.mxl','.txt', '.crd'])
 if uploaded_file is not None:
     type = get_file_type(uploaded_file.name)
     if type == '.mxl':
         t= mxl.MXL(uploaded_file)
         df = t.getPoints()
-        t = dfw.DFWRITER(df)
-        layer_date = t.createFldTxt()
-        layer = t.createTXTNoDates()
-        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25)</a>'
+        print(df)
+        writer = dfw.DFWRITER(df)
+        layer_date = writer.createFldTxt()
+        crd = writer.createFldCrd()
+        layer = writer.createTXTNoDates()
+        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25.txt)</a>'
         st.markdown(href1, unsafe_allow_html=True)
-        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM)</a>'
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM.txt)</a>'
         st.markdown(href2, unsafe_allow_html=True)
+        href3 = f'<a href=\"data:file/zip;base64,{crd}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25.crd)</a>'
+        st.markdown(href3, unsafe_allow_html=True)
+
     if type == '.txt':
         st.toast("Text will have to be: (P,N,E,Z,D,Layer,Date)",icon="🚨")
         t = txt.TXT(uploaded_file)
@@ -128,5 +127,5 @@ if uploaded_file is not None:
         df = t.getPntsCodesLayers()
         t.close()
     st.dataframe(filter_dataframe(df),hide_index=True)
-    output_csv = df.to_csv(index=False).encode('utf-8')
-    st.download_button("Download as one file", output_csv, file_name = "file.csv", mime="text/csv")
+    #output_csv = df.to_csv(index=False).encode('utf-8')
+    #st.download_button("Download as one file", output_csv, file_name = "file.csv", mime="text/csv")
