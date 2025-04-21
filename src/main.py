@@ -8,6 +8,7 @@ import txtreader as txt
 import crdreader as crd
 import sqlitereader as sql
 import dfwriter as dfw
+import base64
 import zipfile
 from pandas.api.types import (
     is_categorical_dtype,
@@ -92,17 +93,19 @@ if uploaded_file is not None:
     if type == '.mxl':
         t= mxl.MXL(uploaded_file)
         df = t.getPoints()
-        print(df)
         writer = dfw.DFWRITER(df)
         layer_date = writer.createFldTxt()
         crd = writer.createFldCrd()
         layer = writer.createTXTNoDates()
-        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date (e.g. AB-STORM 3-22-25.txt)</a>'
+        layer2 = writer.createCrdNoDates()
+        href1 = f'<a href=\"data:file/zip;base64,{layer_date}\" download="Files.zip">📁Download files as Layer-Date TXT (e.g. AB-STORM 3-22-25.txt)</a>'
+        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer TXT (e.g. AB-STORM.txt)</a>'
+        href3 = f'<a href=\"data:file/zip;base64,{crd}\" download="Files.zip">📁Download files as Layer-Date CRD (e.g. AB-STORM 3-22-25.crd)</a>'
+        href4 = f'<a href=\"data:file/zip;base64,{layer2}\" download="Files.zip">📁Download files as Layer CRD (e.g. AB-STORM.crd)</a>'
         st.markdown(href1, unsafe_allow_html=True)
-        href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM.txt)</a>'
         st.markdown(href2, unsafe_allow_html=True)
-        href3 = f'<a href=\"data:file/zip;base64,{crd}\" download="Files.zip">📁*   Download files as Layer-Date (e.g. AB-STORM 3-22-25.crd  *)</a>'
         st.markdown(href3, unsafe_allow_html=True)
+        st.markdown(href4, unsafe_allow_html=True)
 
     if type == '.txt':
         st.toast("Text will have to be: (P,N,E,Z,D,Layer,Date)",icon="🚨")
@@ -116,12 +119,13 @@ if uploaded_file is not None:
         href2 = f'<a href=\"data:file/zip;base64,{layer}\" download="Files.zip">📁Download files as Layer (e.g. AB-STORM)</a>'
         st.markdown(href2, unsafe_allow_html=True)
     if type == ".crd":
+        # Create CRD:::
         t=crd.CRDREADER(uploaded_file.getvalue())
         df = t.read_crd()
         t = dfw.DFWRITER(df)
-        crd_data = t.createCrd()
+        crd_data =base64.b64encode(t.createTXTNoDates())
         href = f'<a href="data:application/octet-stream;base64,{crd_data}" download="output.crd">📁Download as CRD</a>'
-        st.markdown(href, unsafe_allow_html=True)
+        #st.markdown(href, unsafe_allow_html=True)
     if type == '.bak':
         t = sql.SQL(uploaded_file.getvalue())
         df = t.getPntsCodesLayers()

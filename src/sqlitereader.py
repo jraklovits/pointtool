@@ -110,11 +110,9 @@ class SQL:
         pts = pd.merge(pts,codes,left_on= 'keyStation', right_on='keyCodesToPoints',how='left' )
         pts = pd.merge(pts,layers,left_on= 'fkeyLayer', right_on='keyLayers',how='left' )
         pts = pts.drop(no_good_final,axis=1)
-        #print (pts.columns)
         #COLUMN RENAME
         pts = pts.rename(columns={'Name_x': 'Point', 'C1': 'Northing', 'C2' : 'Easting', 'C3' : 'Elevation','SecondsFrom1970': 'Date', 'nameCode' : 'Code', 'Name_y' : 'Layer', 'Notes': 'Note' })
         #GET RID OF PLAN POINTS
-        #print(pts)
         pts =pts[pts.StationType != 18]
         pts['Code'] = pts['Code'].astype(str)
         #pts = pts[~pts['Code'].isin(strdeleter)]
@@ -130,7 +128,6 @@ class SQL:
         pts['Date'] = pd.to_datetime(pts['Date'], unit='s')
         pts['Date'] = pts['Date'].dt.strftime('%m-%d-%Y')
         pts = pts.replace('',np.nan).fillna(" ")
-        print(pts)
         return pts
 
 

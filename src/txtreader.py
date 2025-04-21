@@ -33,7 +33,6 @@ class TXT:
         self.df['Description'] = self.df['Description'].str.replace("'","")
         self.df['Description'] = self.df['Description'].str.replace('"',"")
         self.df['Description'] = self.df['Description'].str.replace("`","")
-        #print(self.df['Dates'])
         # if df['Dates'] < 0:
         #     df['Dates'] = 0
         
