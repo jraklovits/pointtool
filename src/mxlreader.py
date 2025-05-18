@@ -186,4 +186,7 @@ class MXL:
         #datadict =  {"Point": pntNames, "Northing":Ns, "Easting":Es, "Elevation":Zs, "Description":codes, "Code Strings" : codeStrings, "Notes" : notes, "Layer":layers,  "Date":timeStamps}
         datadict =  {"Point": pntNames, "Northing":Ns, "Easting":Es, "Elevation":Zs, "Description":codes, "Layer":layers,  "Date":timeStamps}
         df = pd.DataFrame.from_dict(datadict)
+        print(df.info())
+        df['Date'] = pd.to_datetime(df['Date'],format="%Y-%m-%d").dt.date
+        df = df.sort_values(by="Point")
         return df

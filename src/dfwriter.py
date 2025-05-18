@@ -79,7 +79,7 @@ class DFWRITER:
     def createFldTxt(self):
         #Creates Folders for layers, then outputs a text file for each date named LAYER - DATE
         zip_buf = io.BytesIO()
-        self.df['Date'] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%y')
+        #self.df['Date'] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%y')
         with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:    
             for (layer, date), group in self.df.groupby(['Layer', 'Date']):
                 group = group.drop(['Layer','Date'], axis=1)
@@ -95,7 +95,7 @@ class DFWRITER:
         #Creates Folders for layers, then outputs a text file for each date named LAYER - DATE
 
         zip_buf = io.BytesIO()
-        self.df['Date'] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%y')
+        #self.df['Date'] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%y')
         with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:    
             for (layer, date), group in self.df.groupby(['Layer', 'Date']):
                 group = group.drop(['Layer','Date'], axis=1)
