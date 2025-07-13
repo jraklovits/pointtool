@@ -9,6 +9,10 @@ import os
 class DFWRITER:
     def __init__(self, df):
         self.df = df
+        try:
+            self.df["Date"] = pd.to_datetime(self.df['Date']).dt.strftime('%m-%d-%Y') if not self.df["Date"].empty else self.df["Date"]
+        except KeyError as e:
+            print(e)
 
 
     def createCrds(self, chunk, format=2):
@@ -112,7 +116,11 @@ class DFWRITER:
     def createTXTNoDates(self):
         ##Creates Folders for layers, then outputs a text file for each layer
         zip_buf = io.BytesIO()
-        workingDF = self.df.drop('Date', axis=1)
+        workingDF = self.df
+        try:
+            workingDF = self.df.drop('Date', axis=1)
+        except KeyError as e:
+            print(e)
         with zipfile.ZipFile(zip_buf, "w", zipfile.ZIP_DEFLATED) as zf:
             groups = workingDF.groupby('Layer')
             for layers, group in groups:
@@ -122,6 +130,21 @@ class DFWRITER:
         zip_buf.seek(0)
         b64 = base64.b64encode(zip_buf.read()).decode()
         del zip_buf
+        return b64
+    
+    def createTXTNoDatesForCRD(self):
+        ##Creates text files for crds then outputs a single text file
+        buff = io.StringIO()
+        workingDF = self.df
+        try:
+            workingDF = self.df.drop('Date', axis=1)
+        except KeyError as e:
+            print(e)
+
+        workingDF.to_csv(buff,index=False,header=False)
+        buff.seek(0)
+        b64 = buff.read()
+        del buff
         return b64
     
     def createCrdNoDates(self, format=2):

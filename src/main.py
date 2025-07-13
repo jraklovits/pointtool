@@ -1,16 +1,13 @@
 import streamlit as st # type: ignore
 import pandas as pd # type: ignore
-from datetime import date
 import os
-import io
 import mxlreader as mxl
 import txtreader as txt
 import crdreader as crd
 import sqlitereader as sql
 import dfwriter as dfw
 import base64
-import zipfile
-from pandas.api.types import (
+from pandas.api.types import ( # type: ignore
     is_categorical_dtype,
     is_datetime64_any_dtype,
     is_numeric_dtype,
@@ -121,15 +118,16 @@ if uploaded_file is not None:
     if type == ".crd":
         # Create CRD:::
         t=crd.CRDREADER(uploaded_file.getvalue())
+        name = "".join(uploaded_file.name.split(".")[:-1])
         df = t.read_crd()
         t = dfw.DFWRITER(df)
-        crd_data =base64.b64encode(t.createTXTNoDates())
-        href = f'<a href="data:application/octet-stream;base64,{crd_data}" download="output.crd">📁Download as CRD</a>'
-        #st.markdown(href, unsafe_allow_html=True)
+        print(t.createTXTNoDatesForCRD())
+        crd_data = base64.b64encode(bytes(t.createTXTNoDatesForCRD(),'utf8'))
+        href = f'<a href="data:application/octet-stream;base64,{crd_data.decode()}" download="{name}.txt">📁Download as TXT ({name}.txt)</a>'
+        st.markdown(href, unsafe_allow_html=True)
     if type == '.bak':
         t = sql.SQL(uploaded_file.getvalue())
         df = t.getPntsCodesLayers()
         t.close()
+
     st.dataframe(filter_dataframe(df),hide_index=True)
-    #output_csv = df.to_csv(index=False).encode('utf-8')
-    #st.download_button("Download as one file", output_csv, file_name = "file.csv", mime="text/csv")
